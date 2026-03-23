@@ -1,0 +1,18 @@
+node_modules/
+.env
+.env.*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+coverage/
+dist/
+logs/
+db-ops/
+*.log
+
+# Editor \u0026 OS
+.DS_Store
+.idea
+.vscode/*
+!.vscode/extensions.json
