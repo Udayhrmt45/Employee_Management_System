@@ -4,8 +4,15 @@ const winston = require("winston");
 
 const env = require("../config/env");
 
-const logDir = path.join(process.cwd(), "logs");
-fs.mkdirSync(logDir, { recursive: true });
+const isServerlessRuntime = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const shouldUseFileLogging = env.nodeEnv !== "production" && !isServerlessRuntime;
+
+let logDir = null;
+
+if (shouldUseFileLogging) {
+  logDir = path.join(process.cwd(), "logs");
+  fs.mkdirSync(logDir, { recursive: true });
+}
 
 const fileFormat = winston.format.combine(
   winston.format.timestamp(),
@@ -23,23 +30,25 @@ const consoleFormat = winston.format.combine(
   })
 );
 
-const transports = [
-  new winston.transports.File({
-    filename: path.join(logDir, "error.log"),
-    level: "error"
-  }),
-  new winston.transports.File({
-    filename: path.join(logDir, "combined.log")
-  })
-];
+const transports = [];
 
-if (env.nodeEnv !== "production") {
+if (shouldUseFileLogging) {
   transports.push(
-    new winston.transports.Console({
-      format: consoleFormat
+    new winston.transports.File({
+      filename: path.join(logDir, "error.log"),
+      level: "error"
+    }),
+    new winston.transports.File({
+      filename: path.join(logDir, "combined.log")
     })
   );
 }
+
+transports.push(
+  new winston.transports.Console({
+    format: consoleFormat
+  })
+);
 
 const logger = winston.createLogger({
   level: env.nodeEnv === "production" ? "info" : "debug",
