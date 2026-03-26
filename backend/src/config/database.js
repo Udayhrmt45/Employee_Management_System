@@ -7,6 +7,7 @@ let pool;
 async function connectDatabase() {
   types.setTypeParser(20, (value) => Number(value));
   types.setTypeParser(1082, (value) => value); // Preserve exact DATE string without local timezone parsing
+  types.setTypeParser(1114, (value) => value); // Preserve exact TIMESTAMP string without timezone conversion
 
   pool = new Pool({
     host: env.postgres.host,

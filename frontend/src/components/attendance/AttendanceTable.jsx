@@ -57,7 +57,7 @@ export default function AttendanceTable({ attendanceData }) {
                   className="border-b transition-colors cursor-default"
                 >
                   <TableCell className="font-medium text-foreground px-6 py-4">
-                    {new Date(record.date).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                    {new Date(`${record.date}T00:00:00`).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
                   </TableCell>
                   <TableCell className="text-muted-foreground">{record.checkInTime || '--:--'}</TableCell>
                   <TableCell className="text-muted-foreground">{record.checkOutTime || '--:--'}</TableCell>

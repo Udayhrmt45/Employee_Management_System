@@ -16,6 +16,19 @@ function formatTime(value) {
     return null;
   }
 
+  if (typeof value === "string") {
+    const timeMatch = value.match(/\b(\d{2}):(\d{2})(?::\d{2})?\b/);
+
+    if (timeMatch) {
+      const hours24 = Number(timeMatch[1]);
+      const minutes = timeMatch[2];
+      const meridiem = hours24 >= 12 ? "PM" : "AM";
+      const hours12 = hours24 % 12 || 12;
+
+      return `${String(hours12).padStart(2, "0")}:${minutes} ${meridiem}`;
+    }
+  }
+
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
@@ -48,6 +61,28 @@ function formatDateOnly(value) {
   }
 
   return date.toISOString().slice(0, 10);
+}
+
+function formatWorkedDuration(totalHours) {
+  const hoursValue = Number(totalHours);
+
+  if (!Number.isFinite(hoursValue) || hoursValue <= 0) {
+    return "-";
+  }
+
+  const totalMinutes = Math.round(hoursValue * 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours === 0) {
+    return `${minutes} min worked`;
+  }
+
+  if (minutes === 0) {
+    return `${hours} ${hours === 1 ? "hr" : "hrs"} worked`;
+  }
+
+  return `${hours} ${hours === 1 ? "hr" : "hrs"} ${minutes} min worked`;
 }
 
 export function getApiData(response, fallback = []) {
@@ -84,7 +119,7 @@ export function normalizeAttendanceRecord(record) {
     date: formatDateOnly(record.attendanceDate),
     checkInTime: formatTime(record.checkIn),
     checkOutTime: formatTime(record.checkOut),
-    notes: record.totalHours ? `${record.totalHours} hrs worked` : "-",
+    notes: formatWorkedDuration(record.totalHours),
     rawStatus: record.status,
     status: titleCase(record.status) || "Unknown",
   };

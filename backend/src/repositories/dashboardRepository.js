@@ -5,6 +5,65 @@ const LATE_ARRIVAL_TIME = env.attendance.lateArrivalCutoff;
 const ATTENDANCE_TIMEZONE = env.attendance.timezone;
 const ACTIVITY_LIMIT = 10;
 
+function getAttendanceTimeParts(date = new Date()) {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: ATTENDANCE_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  });
+
+  return formatter
+    .formatToParts(date)
+    .reduce((parts, part) => {
+      if (part.type !== "literal") {
+        parts[part.type] = part.value;
+      }
+
+      return parts;
+    }, {});
+}
+
+function getCurrentAttendanceDate() {
+  const parts = getAttendanceTimeParts();
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+function normalizeStoredTimestamp(value) {
+  if (!value) {
+    return null;
+  }
+
+  const normalizedValue = String(value).trim();
+  const timestampMatch = normalizedValue.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})/);
+
+  if (timestampMatch) {
+    return `${timestampMatch[1]} ${timestampMatch[2]}`;
+  }
+
+  return normalizedValue;
+}
+
+function formatActivityTimestamp(value) {
+  if (!value) {
+    return null;
+  }
+
+  const normalizedValue = normalizeStoredTimestamp(value);
+  const utcDate = new Date(normalizedValue.replace(" ", "T") + "Z");
+
+  if (Number.isNaN(utcDate.getTime())) {
+    return normalizedValue;
+  }
+
+  const parts = getAttendanceTimeParts(utcDate);
+  return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second}`;
+}
+
 function mapActivity(row) {
   if (!row) {
     return null;
@@ -14,7 +73,7 @@ function mapActivity(row) {
     id: `${row.type}-${row.id}`,
     employeeName: row.employee_name,
     action: row.action,
-    occurredAt: row.occurred_at,
+    occurredAt: formatActivityTimestamp(row.occurred_at),
     status: row.status,
     type: row.type,
   };
@@ -22,6 +81,7 @@ function mapActivity(row) {
 
 exports.getSummary = async (companyId) => {
   const db = getDatabase();
+  const today = getCurrentAttendanceDate();
   const { rows } = await db.query(
     `SELECT
        COALESCE((SELECT COUNT(*) FROM employees WHERE company_id = $1 AND status = 'ACTIVE'), 0) AS total_employees,
@@ -29,7 +89,7 @@ exports.getSummary = async (companyId) => {
          SELECT COUNT(*)
          FROM attendance
          WHERE company_id = $1
-           AND date = CURRENT_DATE
+           AND date = $4::date
            AND status = 'PRESENT'
        ), 0) AS present_today,
        COALESCE((
@@ -37,17 +97,17 @@ exports.getSummary = async (companyId) => {
          FROM leave_requests
          WHERE company_id = $1
            AND status = 'APPROVED'
-           AND CURRENT_DATE BETWEEN start_date AND end_date
+           AND $4::date BETWEEN start_date AND end_date
        ), 0) AS on_leave,
        COALESCE((
          SELECT COUNT(*)
          FROM attendance
          WHERE company_id = $1
-           AND date = CURRENT_DATE
+           AND date = $4::date
            AND check_in IS NOT NULL
            AND ((check_in AT TIME ZONE 'UTC') AT TIME ZONE $3)::time > $2::time
        ), 0) AS late_arrivals`,
-    [companyId, LATE_ARRIVAL_TIME, ATTENDANCE_TIMEZONE]
+    [companyId, LATE_ARRIVAL_TIME, ATTENDANCE_TIMEZONE, today]
   );
 
   const row = rows[0] || {};

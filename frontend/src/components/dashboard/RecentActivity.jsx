@@ -28,6 +28,19 @@ function formatActivityTime(value) {
     return '--';
   }
 
+  if (typeof value === 'string') {
+    const timeMatch = value.match(/\b(\d{2}):(\d{2})(?::\d{2})?\b/);
+
+    if (timeMatch) {
+      const hours24 = Number(timeMatch[1]);
+      const minutes = timeMatch[2];
+      const meridiem = hours24 >= 12 ? 'PM' : 'AM';
+      const hours12 = hours24 % 12 || 12;
+
+      return `${String(hours12).padStart(2, '0')}:${minutes} ${meridiem}`;
+    }
+  }
+
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {

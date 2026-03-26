@@ -1,18 +1,55 @@
 const attendanceRepository = require("../repositories/attendanceRepository");
+const env = require("../config/env");
 const ApiError = require("../utils/ApiError");
 const cacheHelper = require("../utils/cacheHelper");
 const { CACHE_NAMESPACES } = cacheHelper;
 
-function getCurrentDate() {
-  return new Date().toISOString().slice(0, 10);
+const ATTENDANCE_TIMEZONE = env.attendance.timezone;
+
+function getAttendanceTimeParts(date = new Date()) {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: ATTENDANCE_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  });
+
+  return formatter
+    .formatToParts(date)
+    .reduce((parts, part) => {
+      if (part.type !== "literal") {
+        parts[part.type] = part.value;
+      }
+
+      return parts;
+    }, {});
 }
 
+function getCurrentDate() {
+  const parts = getAttendanceTimeParts();
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
 
-function getLocalTimestamp() {
-  const d = new Date();
-  const tzo = -d.getTimezoneOffset();
-  const ms = d.getTime() + tzo * 60000;
-  return new Date(ms).toISOString().slice(0, 19).replace('T', ' ');
+function getCurrentUtcTimestamp() {
+  return new Date().toISOString().slice(0, 19).replace("T", " ");
+}
+
+function parseStoredUtcTimestamp(value) {
+  if (!value) {
+    return null;
+  }
+
+  const normalizedValue = String(value).trim();
+  const timestampMatch = normalizedValue.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})/);
+  const isoValue = timestampMatch
+    ? `${timestampMatch[1]}T${timestampMatch[2]}Z`
+    : normalizedValue;
+
+  return new Date(isoValue);
 }
 
 function roundHours(hours) {
@@ -44,7 +81,7 @@ exports.checkIn = async (companyId, userId, payload) => {
     const attendance = await attendanceRepository.createCheckIn(companyId, {
       employeeId: employee.id,
       date: attendanceDate,
-      checkIn: payload.checkIn || getLocalTimestamp(),
+      checkIn: payload.checkIn || getCurrentUtcTimestamp(),
       status: payload.status || "PRESENT"
     });
     await cacheHelper.invalidateNamespace(CACHE_NAMESPACES.ATTENDANCE_DASHBOARD, companyId);
@@ -76,8 +113,10 @@ exports.checkOut = async (companyId, userId, payload) => {
     throw new ApiError(409, "Employee has already checked out for this day");
   }
 
-  const checkOutAt = payload.checkOut || getLocalTimestamp();
-  const totalHours = roundHours((new Date(checkOutAt) - new Date(attendance.checkIn)) / (1000 * 60 * 60));
+  const checkOutAt = payload.checkOut || getCurrentUtcTimestamp();
+  const totalHours = roundHours(
+    (parseStoredUtcTimestamp(checkOutAt) - parseStoredUtcTimestamp(attendance.rawCheckIn || attendance.checkIn)) / (1000 * 60 * 60)
+  );
 
   if (Number.isNaN(totalHours) || totalHours < 0) {
     throw new ApiError(400, "Check-out time must be after check-in time");

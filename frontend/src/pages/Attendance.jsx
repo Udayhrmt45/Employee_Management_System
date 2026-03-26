@@ -20,11 +20,16 @@ const containerVariants = {
   }
 };
 
+function getLocalDateInputValue() {
+  const now = new Date();
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+}
+
 export default function Attendance() {
   const { userRole } = useAuthUser();
   const isAdmin = ['ADMIN', 'OWNER'].includes(String(userRole).toUpperCase());
   const [activeTab, setActiveTab] = React.useState('my-attendance');
-  const [selectedDate, setSelectedDate] = React.useState(() => new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = React.useState(getLocalDateInputValue);
   const [statusFilter, setStatusFilter] = React.useState('ALL');
   const { records, todayAttendance, isLoading, isError, errorMessage, refetch } = useAttendance();
   const {
