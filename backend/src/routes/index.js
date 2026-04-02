@@ -10,6 +10,7 @@ const paymentRoutes = require("./paymentRoutes");
 const settingsRoutes = require("./settingsRoutes");
 const departmentRoutes = require("./departmentRoutes");
 const notificationRoutes = require("./notificationRoutes");
+const demoRoutes = require("./demoRoutes");
 
 const authMiddleware = require("../middleware/authMiddleware");
 const { requireSuperAdmin } = require("../middleware/roleMiddleware");
@@ -18,6 +19,7 @@ const adminCompanyRoutes = require("./admin/companyRoutes");
 const adminPaymentRoutes = require("./admin/paymentRoutes");
 const adminSettingsRoutes = require("./admin/settingsRoutes");
 const adminDashboardRoutes = require("./admin/dashboardRoutes");
+const adminDemoRoutes = require("./admin/demoRoutes");
 
 const router = express.Router();
 
@@ -31,11 +33,13 @@ router.use("/payments", paymentRoutes);
 router.use("/settings", settingsRoutes);
 router.use("/departments", departmentRoutes);
 router.use("/notifications", notificationRoutes);
+router.use("/demo-requests", demoRoutes);
 
 // Super Admin Routes
 router.use("/admin/dashboard", authMiddleware, requireSuperAdmin, adminDashboardRoutes);
 router.use("/admin/companies", authMiddleware, requireSuperAdmin, adminCompanyRoutes);
 router.use("/admin/payments", authMiddleware, requireSuperAdmin, adminPaymentRoutes);
 router.use("/admin/settings", authMiddleware, requireSuperAdmin, adminSettingsRoutes);
+router.use("/admin/demo-requests", authMiddleware, requireSuperAdmin, adminDemoRoutes);
 
 module.exports = router;

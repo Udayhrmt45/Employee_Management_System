@@ -26,6 +26,7 @@ const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminCompanies = lazy(() => import('./pages/admin/Companies'));
 const AdminPayments = lazy(() => import('./pages/admin/Payments'));
+const AdminDemoRequests = lazy(() => import('./pages/admin/DemoRequests'));
 const AdminSettings = lazy(() => import('./pages/admin/Settings'));
 
 // Reusable animated loading fallback
@@ -194,6 +195,7 @@ function App() {
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/companies" element={<AdminCompanies />} />
             <Route path="/admin/payments" element={<AdminPayments />} />
+            <Route path="/admin/demo-requests" element={<AdminDemoRequests />} />
             <Route path="/admin/notifications" element={<Notifications />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
           </Route>

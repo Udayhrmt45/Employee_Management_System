@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Users, Sparkles, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import BookDemoModal from './BookDemoModal';
 
 const fadeUpVariants = {
   hidden: { opacity: 0, y: 30 },
@@ -10,6 +11,8 @@ const fadeUpVariants = {
 };
 
 export default function HeroSection() {
+  const [isDemoOpen, setIsDemoOpen] = useState(false);
+
   return (
     <section className="relative overflow-hidden bg-background pt-24 pb-32 sm:pt-32 sm:pb-40">
       {/* Animated Abstract Background Elements */}
@@ -81,15 +84,14 @@ export default function HeroSection() {
                   Start Free Trial
                 </Button>
               </Link>
-              <Link to="/demo">
-                <Button variant="outline" size="lg" className="h-12 px-8 text-base group hover:bg-muted/50 transition-colors">
-                  Book Demo <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
+              <Button onClick={() => setIsDemoOpen(true)} variant="outline" size="lg" className="h-12 px-8 text-base group hover:bg-muted/50 transition-colors cursor-pointer">
+                Book Demo <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
             </motion.div>
           </motion.div>
         </div>
       </div>
+      <BookDemoModal isOpen={isDemoOpen} onClose={() => setIsDemoOpen(false)} />
     </section>
   );
 }
