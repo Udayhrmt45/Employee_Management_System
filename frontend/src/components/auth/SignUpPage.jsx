@@ -5,7 +5,7 @@ export default function SignUpPage() {
   return (
     <AuthLayout 
       title="Create an account" 
-      subtitle="Get started with your HR SaaS dashboard"
+      subtitle="Get started with your TeamEase dashboard"
     >
       <SignUp
         routing="path"

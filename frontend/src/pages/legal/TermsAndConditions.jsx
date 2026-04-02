@@ -22,7 +22,7 @@ export default function TermsAndConditions() {
           <section>
             <h2 className="text-2xl font-semibold text-foreground mb-3">1. Agreement to Terms</h2>
             <p>
-              By accessing or using our HR SaaS platform, you agree to be bound by these Terms and Conditions. If you disagree with any part of the terms, you do not have permission to access the service.
+              By accessing or using our TeamEase platform, you agree to be bound by these Terms and Conditions. If you disagree with any part of the terms, you do not have permission to access the service.
             </p>
           </section>
 
@@ -50,14 +50,14 @@ export default function TermsAndConditions() {
           <section>
             <h2 className="text-2xl font-semibold text-foreground mb-3">5. Intellectual Property</h2>
             <p>
-              The Service and its original content, features, and functionality are and will remain the exclusive property of HR SaaS and its licensors.
+              The Service and its original content, features, and functionality are and will remain the exclusive property of TeamEase and its licensors.
             </p>
           </section>
 
           <section>
             <h2 className="text-2xl font-semibold text-foreground mb-3">6. Limitation of Liability</h2>
             <p>
-              In no event shall HR SaaS, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Service.
+              In no event shall TeamEase, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Service.
             </p>
           </section>
 

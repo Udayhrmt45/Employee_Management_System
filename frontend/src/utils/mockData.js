@@ -1,8 +1,8 @@
 export const MOCK_EMPLOYEES = [
-  { id: 1, name: 'Alice Cooper', email: 'alice@hrsaas.com', position: 'HR Manager', department: 'Human Resources', status: 'Active', phone: '+1 234 567 8900' },
-  { id: 2, name: 'Bob Smith', email: 'bob@hrsaas.com', position: 'Software Engineer', department: 'Engineering', status: 'Active', phone: '+1 234 567 8901' },
-  { id: 3, name: 'Charlie Davis', email: 'charlie@hrsaas.com', position: 'Product Designer', department: 'Design', status: 'On Leave', phone: '+1 234 567 8902' },
-  { id: 4, name: 'Diana Prince', email: 'diana@hrsaas.com', position: 'Marketing Lead', department: 'Marketing', status: 'Active', phone: '+1 234 567 8903' },
+  { id: 1, name: 'Alice Cooper', email: 'alice@teamease.com', position: 'HR Manager', department: 'Human Resources', status: 'Active', phone: '+1 234 567 8900' },
+  { id: 2, name: 'Bob Smith', email: 'bob@teamease.com', position: 'Software Engineer', department: 'Engineering', status: 'Active', phone: '+1 234 567 8901' },
+  { id: 3, name: 'Charlie Davis', email: 'charlie@teamease.com', position: 'Product Designer', department: 'Design', status: 'On Leave', phone: '+1 234 567 8902' },
+  { id: 4, name: 'Diana Prince', email: 'diana@teamease.com', position: 'Marketing Lead', department: 'Marketing', status: 'Active', phone: '+1 234 567 8903' },
 ];
 
 export const MOCK_ATTENDANCE = [

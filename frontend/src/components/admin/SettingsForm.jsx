@@ -11,7 +11,7 @@ export default function SettingsForm() {
   const [settings, setSettings] = useState({
     default_trial_days: '14',
     max_employees_free_plan: '5',
-    support_email: 'support@hrsaas.com'
+    support_email: 'support@teamease.com'
   });
 
   useEffect(() => {

@@ -22,7 +22,7 @@ export default function RefundPolicy() {
           <section>
             <h2 className="text-2xl font-semibold text-foreground mb-3">1. Refund Eligibility</h2>
             <p>
-              We want you to be completely satisfied with our HR SaaS platform. If you are not satisfied with your premium subscription, we offer a full refund within the first 7 days of your initial purchase.
+              We want you to be completely satisfied with our TeamEase platform. If you are not satisfied with your premium subscription, we offer a full refund within the first 7 days of your initial purchase.
             </p>
           </section>
 

@@ -65,9 +65,9 @@ export default function HeroSection() {
             }}
           >
             <motion.div variants={fadeUpVariants} className="mb-8 flex justify-center">
-              <span className="relative flex items-center justify-center gap-2 rounded-full px-3 py-1 text-sm leading-6 text-muted-foreground ring-1 ring-border shadow-sm hover:shadow-md hover:ring-foreground/20 transition-all cursor-pointer">
-                <Sparkles className="w-4 h-4 text-primary" /> Meet the new TeamEase. <a href="#" className="font-semibold text-primary"><span className="absolute inset-0" aria-hidden="true"></span>Read more <span aria-hidden="true">&rarr;</span></a>
-              </span>
+              <Link to="/product-details" className="relative flex items-center justify-center gap-2 rounded-full px-3 py-1 text-sm leading-6 text-muted-foreground ring-1 ring-border shadow-sm hover:shadow-md hover:ring-foreground/20 transition-all cursor-pointer">
+                <Sparkles className="w-4 h-4 text-primary" /> Meet the new TeamEase. <span className="font-semibold text-primary">Read more <span aria-hidden="true">&rarr;</span></span>
+              </Link>
             </motion.div>
             
             <motion.h1 variants={fadeUpVariants} className="text-4xl font-extrabold tracking-tight text-foreground sm:text-6xl mb-6">

@@ -32,7 +32,7 @@ export default function CTASection() {
                 </Button>
               </motion.div>
             </Link>
-            <Link to="/features" className="text-sm font-semibold leading-6 text-foreground hover:text-primary transition-colors flex items-center gap-1 group">
+            <Link to="/product-details" className="text-sm font-semibold leading-6 text-foreground hover:text-primary transition-colors flex items-center gap-1 group">
               Learn more <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>

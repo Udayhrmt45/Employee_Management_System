@@ -20,6 +20,7 @@ const Notifications = lazy(() => import('./pages/Notifications'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const TermsAndConditions = lazy(() => import('./pages/legal/TermsAndConditions'));
 const RefundPolicy = lazy(() => import('./pages/legal/RefundPolicy'));
+const ProductDetails = lazy(() => import('./pages/ProductDetails'));
 
 // Admin pages
 const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));
@@ -158,6 +159,7 @@ function App() {
           {/* Public Legal Routes */}
           <Route path="/terms" element={<TermsAndConditions />} />
           <Route path="/refund-policy" element={<RefundPolicy />} />
+          <Route path="/product-details" element={<ProductDetails />} />
 
           {/* Protected Dashboard Routes */}
           <Route 

@@ -5,7 +5,7 @@ export default function SignInPage() {
   return (
     <AuthLayout 
       title="Welcome back" 
-      subtitle="Sign in to your HR SaaS account"
+      subtitle="Sign in to your TeamEase account"
     >
       <SignIn
         routing="path"

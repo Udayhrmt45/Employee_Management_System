@@ -4,6 +4,7 @@ import { LayoutDashboard, Users, Calendar, Clock, Settings, Bell } from 'lucide-
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import Logo from '@/components/branding/Logo';
 
 const NAVIGATION_ITEMS = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -48,16 +49,9 @@ export default function Sidebar({ isExpanded }) {
     >
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-2 overflow-hidden">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground font-bold shadow-sm">
-            H
+          <div className="flex h-16 shrink-0 items-center">
+            <Logo />
           </div>
-          <motion.span
-            initial={false}
-            animate={{ opacity: isExpanded ? 1 : 0, width: isExpanded ? "auto" : 0 }}
-            className="whitespace-nowrap font-semibold tracking-tight"
-          >
-            HR SaaS
-          </motion.span>
         </div>
       </div>
 

@@ -4,6 +4,7 @@ import { AnimatePresence } from 'framer-motion';
 import { UserButton, useUser } from '@clerk/clerk-react';
 import { useQueryClient } from '@tanstack/react-query';
 
+import Logo from '@/components/branding/Logo';
 import OnboardingProgress from '@/components/onboarding/OnboardingProgress';
 import CompanySetup from '@/components/onboarding/CompanySetup';
 import InviteEmployees from '@/components/onboarding/InviteEmployees';
@@ -130,10 +131,7 @@ export default function Onboarding() {
     <div className="min-h-screen bg-muted/20 flex flex-col font-sans selection:bg-primary/20">
       <header className="absolute top-0 w-full p-6 flex justify-between items-center z-10">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold shadow-sm">
-            H
-          </div>
-          <span className="text-lg font-semibold tracking-tight">HR SaaS</span>
+          <Logo />
         </div>
         <div className="flex items-center gap-3">
           <span className="text-sm font-medium text-muted-foreground hidden sm:block">

@@ -83,7 +83,7 @@ export default function BillingSettings() {
         key: orderPayload.keyId,
         amount: orderPayload.order.amount,
         currency: orderPayload.order.currency,
-        name: subscription?.company?.name || 'HR SaaS',
+        name: subscription?.company?.name || 'TeamEase',
         description: `${PLAN_DETAILS[plan].label} subscription`,
         order_id: orderPayload.order.id,
         handler: async (response) => {
