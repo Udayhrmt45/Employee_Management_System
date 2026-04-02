@@ -9,7 +9,7 @@ const tiers = [
     name: 'Free Plan',
     id: 'tier-free',
     href: '/sign-up',
-    price: '$0',
+    price: '₹0',
     description: 'Perfect for tiny startups and founding teams.',
     features: ['Up to 5 employees', 'Basic attendance tracking', 'Standard leave management', 'Community support'],
     featured: false,
@@ -19,8 +19,8 @@ const tiers = [
     name: 'Starter Plan',
     id: 'tier-starter',
     href: '/sign-up',
-    price: '$2',
-    priceSuffix: '/employee',
+    price: '₹199',
+    priceSuffix: '/month',
     description: 'Everything you need as your team begins to scale.',
     features: ['Unlimited employees', 'Advanced analytics', 'Custom holiday calendars', 'Priority email support', 'Export payload capabilities'],
     featured: true,
@@ -46,7 +46,7 @@ export default function PricingSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.2, duration: 0.5 }}
-              className={`rounded-3xl p-8 ring-1 ring-border sm:p-10 ${tier.featured ? 'bg-primary text-primary-foreground shadow-xl lg:scale-105 z-10' : 'bg-card text-card-foreground shadow-sm'}`}
+              className={`rounded-3xl p-8 ring-1 ring-border sm:p-10 ${tier.featured ? 'bg-primary text-primary-foreground shadow-[0_0_40px_-10px_rgba(59,130,246,0.5)] lg:scale-105 z-10 relative' : 'bg-card text-card-foreground shadow-sm'}`}
             >
               <h3 id={tier.id} className={`text-base font-semibold leading-7 ${tier.featured ? 'text-primary-foreground/90' : 'text-primary'}`}>
                 {tier.name}

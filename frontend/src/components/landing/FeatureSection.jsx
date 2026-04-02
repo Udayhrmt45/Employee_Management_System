@@ -47,12 +47,12 @@ export default function FeatureSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                whileHover={{ y: -5 }}
-                className="flex flex-col rounded-2xl bg-card p-8 shadow-sm ring-1 ring-border transition-all hover:shadow-md"
+                whileHover={{ y: -5, scale: 1.02 }}
+                className="group flex flex-col rounded-2xl bg-card p-8 shadow-sm ring-1 ring-border transition-all hover:shadow-lg hover:border-primary/20"
               >
                 <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-foreground">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <feature.icon className="h-5 w-5 text-primary" aria-hidden="true" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 transition-transform group-hover:scale-110 group-hover:bg-primary/20 group-hover:rotate-3">
+                    <feature.icon className="h-5 w-5 text-primary transition-colors group-hover:text-blue-600" aria-hidden="true" />
                   </div>
                   {feature.name}
                 </dt>

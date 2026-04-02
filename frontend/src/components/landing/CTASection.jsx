@@ -26,9 +26,11 @@ export default function CTASection() {
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
             <Link to="/sign-up">
-              <Button size="lg" className="h-12 px-8 text-base shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
-                Get started
-              </Button>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button size="lg" className="h-12 px-8 text-base shadow-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white border-0 transition-colors">
+                  Get started
+                </Button>
+              </motion.div>
             </Link>
             <Link to="/features" className="text-sm font-semibold leading-6 text-foreground hover:text-primary transition-colors flex items-center gap-1 group">
               Learn more <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
