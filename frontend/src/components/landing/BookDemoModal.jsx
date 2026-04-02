@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import axios from 'axios';
+import api from '@/services/api';
 
 export default function BookDemoModal({ isOpen, onClose }) {
   const [formData, setFormData] = useState({
@@ -25,7 +25,7 @@ export default function BookDemoModal({ isOpen, onClose }) {
     setLoading(true);
     setError(null);
     try {
-      await axios.post('http://localhost:5000/api/v1/demo-requests', formData);
+      await api.post('/demo-requests', formData);
       setSuccess(true);
     } catch (err) {
       setError(err.response?.data?.message || 'Something went wrong. Please try again.');
