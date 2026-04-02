@@ -9,6 +9,7 @@ const leaveRoutes = require("./leaveRoutes");
 const paymentRoutes = require("./paymentRoutes");
 const settingsRoutes = require("./settingsRoutes");
 const departmentRoutes = require("./departmentRoutes");
+const notificationRoutes = require("./notificationRoutes");
 
 const authMiddleware = require("../middleware/authMiddleware");
 const { requireSuperAdmin } = require("../middleware/roleMiddleware");
@@ -29,6 +30,7 @@ router.use("/leaves", leaveRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/settings", settingsRoutes);
 router.use("/departments", departmentRoutes);
+router.use("/notifications", notificationRoutes);
 
 // Super Admin Routes
 router.use("/admin/dashboard", authMiddleware, requireSuperAdmin, adminDashboardRoutes);

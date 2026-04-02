@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, CreditCard, Settings } from 'lucide-react';
+import { LayoutDashboard, Building2, CreditCard, Settings, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
@@ -8,6 +8,7 @@ const NAVIGATION_ITEMS = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { name: 'Companies', href: '/admin/companies', icon: Building2 },
   { name: 'Payments', href: '/admin/payments', icon: CreditCard },
+  { name: 'Notifications', href: '/admin/notifications', icon: Bell },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 

@@ -1,7 +1,8 @@
 import React from 'react';
 import { UserButton, SignedIn, SignedOut } from '@clerk/clerk-react';
-import { Bell, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import NotificationBell from '@/components/notifications/NotificationBell';
 
 export default function Navbar({ toggleSidebar }) {
   return (
@@ -21,10 +22,7 @@ export default function Navbar({ toggleSidebar }) {
       </div>
 
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="relative h-9 w-9 hover:bg-secondary">
-          <Bell className="h-4 w-4" />
-          <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-destructive"></span>
-        </Button>
+        <NotificationBell />
         
         <SignedIn>
           <UserButton
