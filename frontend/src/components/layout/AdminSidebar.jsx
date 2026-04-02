@@ -1,11 +1,12 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, CreditCard, Settings, Bell } from 'lucide-react';
+import { LayoutDashboard, Building2, CreditCard, Settings, Bell, Inbox } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
 const NAVIGATION_ITEMS = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+  { name: 'Demo Requests', href: '/admin/demo-requests', icon: Inbox },
   { name: 'Companies', href: '/admin/companies', icon: Building2 },
   { name: 'Payments', href: '/admin/payments', icon: CreditCard },
   { name: 'Notifications', href: '/admin/notifications', icon: Bell },
