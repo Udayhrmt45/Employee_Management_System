@@ -16,6 +16,7 @@ const SignUpPage = lazy(() => import('./components/auth/SignUpPage'));
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
 const Settings = lazy(() => import('./pages/Settings'));
+const Notifications = lazy(() => import('./pages/Notifications'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const TermsAndConditions = lazy(() => import('./pages/legal/TermsAndConditions'));
 const RefundPolicy = lazy(() => import('./pages/legal/RefundPolicy'));
@@ -179,6 +180,7 @@ function App() {
                 <Settings />
               </RoleProtectedRoute>
             } />
+            <Route path="/notifications" element={<Notifications />} />
           </Route>
 
           {/* Super Admin Protected Routes */}
@@ -192,6 +194,7 @@ function App() {
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/companies" element={<AdminCompanies />} />
             <Route path="/admin/payments" element={<AdminPayments />} />
+            <Route path="/admin/notifications" element={<Notifications />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
           </Route>
           

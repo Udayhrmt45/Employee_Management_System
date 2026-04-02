@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Calendar, Clock, Settings, Menu } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, Clock, Settings, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ const NAVIGATION_ITEMS = [
   { name: 'Employees', href: '/employees', icon: Users },
   { name: 'Attendance', href: '/attendance', icon: Clock },
   { name: 'Leave', href: '/leave', icon: Calendar },
+  { name: 'Notifications', href: '/notifications', icon: Bell },
 ];
 
 const SidebarItem = ({ name, href, icon: Icon, isExpanded }) => (
