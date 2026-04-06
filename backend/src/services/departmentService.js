@@ -4,7 +4,7 @@ const ApiError = require("../utils/ApiError");
 const { getDatabase } = require("../config/database");
 const { hasPermission, ROLES } = require("../utils/roleHierarchy");
 
-const { CACHE_NAMESPACES } = cacheHelper;
+const { CACHE_NAMESPACES, TTL } = cacheHelper;
 
 function assertAdmin(user) {
   if (!hasPermission(user.role, ROLES.ADMIN)) {
@@ -13,11 +13,19 @@ function assertAdmin(user) {
 }
 
 async function invalidateDepartmentRelatedCache(companyId) {
-  await cacheHelper.invalidateNamespace(CACHE_NAMESPACES.EMPLOYEE_LIST, companyId);
+  await Promise.all([
+    cacheHelper.invalidateNamespace(CACHE_NAMESPACES.DEPARTMENT_LIST, companyId),
+    cacheHelper.invalidateNamespace(CACHE_NAMESPACES.EMPLOYEE_LIST, companyId)
+  ]);
 }
 
 exports.listDepartments = async (companyId) => {
-  return departmentRepository.list(companyId);
+  const cacheKey = cacheHelper.buildCacheKey(CACHE_NAMESPACES.DEPARTMENT_LIST, companyId);
+  return cacheHelper.getOrSetJson(
+    cacheKey,
+    () => departmentRepository.list(companyId),
+    TTL.DEPARTMENT
+  );
 };
 
 exports.createDepartment = async (companyId, user, payload) => {

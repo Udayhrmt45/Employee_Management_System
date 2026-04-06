@@ -2,7 +2,7 @@ const employeeRepository = require("../repositories/employeeRepository");
 const leaveRepository = require("../repositories/leaveRepository");
 const ApiError = require("../utils/ApiError");
 const cacheHelper = require("../utils/cacheHelper");
-const { CACHE_NAMESPACES } = cacheHelper;
+const { CACHE_NAMESPACES, TTL } = cacheHelper;
 const { hasPermission, ROLES } = require("../utils/roleHierarchy");
 
 function normalizeEmployeeWriteError(error) {
@@ -53,8 +53,10 @@ exports.createEmployee = async (companyId, payload) => {
       status: payload.status || "ACTIVE"
     });
     await leaveRepository.initializeLeaveBalancesForEmployee(companyId, employee.id);
-    await cacheHelper.invalidateNamespace(CACHE_NAMESPACES.EMPLOYEE_LIST, companyId);
-    await cacheHelper.invalidateNamespace(CACHE_NAMESPACES.DASHBOARD_SUMMARY, companyId);
+    await Promise.all([
+      cacheHelper.invalidateNamespace(CACHE_NAMESPACES.EMPLOYEE_LIST, companyId),
+      cacheHelper.invalidateNamespace(CACHE_NAMESPACES.DASHBOARD_SUMMARY, companyId)
+    ]);
     return employee;
   } catch (error) {
     normalizeEmployeeWriteError(error);
@@ -63,13 +65,13 @@ exports.createEmployee = async (companyId, payload) => {
 
 exports.listEmployees = async (companyId, query) => {
   const cacheKey = cacheHelper.buildCacheKey(CACHE_NAMESPACES.EMPLOYEE_LIST, companyId, query);
-  return cacheHelper.getOrSetJson(cacheKey, () => employeeRepository.list(companyId, query));
+  return cacheHelper.getOrSetJson(cacheKey, () => employeeRepository.list(companyId, query), TTL.EMPLOYEE);
 };
 
 exports.listTeamEmployees = async (companyId, user, query) => {
   if (hasPermission(user.role, ROLES.OWNER)) {
     const cacheKey = cacheHelper.buildCacheKey(CACHE_NAMESPACES.EMPLOYEE_LIST, companyId, { ...query, team: "all" });
-    return cacheHelper.getOrSetJson(cacheKey, () => employeeRepository.list(companyId, query));
+    return cacheHelper.getOrSetJson(cacheKey, () => employeeRepository.list(companyId, query), TTL.EMPLOYEE);
   }
 
   const employee = await employeeRepository.findEmployeeByUserId(companyId, user.id);
@@ -79,7 +81,7 @@ exports.listTeamEmployees = async (companyId, user, query) => {
 
   const teamQuery = { ...query, managerId: employee.id };
   const cacheKey = cacheHelper.buildCacheKey(CACHE_NAMESPACES.EMPLOYEE_LIST, companyId, teamQuery);
-  return cacheHelper.getOrSetJson(cacheKey, () => employeeRepository.list(companyId, teamQuery));
+  return cacheHelper.getOrSetJson(cacheKey, () => employeeRepository.list(companyId, teamQuery), TTL.EMPLOYEE);
 };
 
 exports.listDepartments = async (companyId) => {
@@ -148,8 +150,10 @@ exports.updateEmployee = async (companyId, employeeId, payload, user) => {
 
   try {
     const employee = await employeeRepository.update(companyId, employeeId, payload);
-    await cacheHelper.invalidateNamespace(CACHE_NAMESPACES.EMPLOYEE_LIST, companyId);
-    await cacheHelper.invalidateNamespace(CACHE_NAMESPACES.DASHBOARD_SUMMARY, companyId);
+    await Promise.all([
+      cacheHelper.invalidateNamespace(CACHE_NAMESPACES.EMPLOYEE_LIST, companyId),
+      cacheHelper.invalidateNamespace(CACHE_NAMESPACES.DASHBOARD_SUMMARY, companyId)
+    ]);
     return employee;
   } catch (error) {
     normalizeEmployeeWriteError(error);
@@ -186,6 +190,8 @@ exports.deleteEmployee = async (companyId, employeeId, user) => {
     throw new ApiError(404, "Employee not found");
   }
 
-  await cacheHelper.invalidateNamespace(CACHE_NAMESPACES.EMPLOYEE_LIST, companyId);
-  await cacheHelper.invalidateNamespace(CACHE_NAMESPACES.DASHBOARD_SUMMARY, companyId);
+  await Promise.all([
+    cacheHelper.invalidateNamespace(CACHE_NAMESPACES.EMPLOYEE_LIST, companyId),
+    cacheHelper.invalidateNamespace(CACHE_NAMESPACES.DASHBOARD_SUMMARY, companyId)
+  ]);
 };

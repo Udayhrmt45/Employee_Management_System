@@ -2,7 +2,7 @@ const leaveRepository = require("../repositories/leaveRepository");
 const employeeRepository = require("../repositories/employeeRepository");
 const ApiError = require("../utils/ApiError");
 const cacheHelper = require("../utils/cacheHelper");
-const { CACHE_NAMESPACES } = cacheHelper;
+const { CACHE_NAMESPACES, TTL } = cacheHelper;
 const { canApproveLeave } = require("../utils/roleHierarchy");
 
 function getInclusiveLeaveDays(startDate, endDate) {
@@ -23,7 +23,13 @@ async function getCurrentEmployee(companyId, userId) {
 
 // removed assertAdmin function completely
 exports.getLeaveTypes = async (companyId) => {
-  return leaveRepository.listLeaveTypes(companyId);
+  // Leave types are near-static per company — cache aggressively
+  const cacheKey = cacheHelper.buildCacheKey(CACHE_NAMESPACES.LEAVE_TYPES, companyId);
+  return cacheHelper.getOrSetJson(
+    cacheKey,
+    () => leaveRepository.listLeaveTypes(companyId),
+    TTL.LEAVE_TYPES
+  );
 };
 
 exports.getMyLeaveBalances = async (companyId, user) => {
@@ -60,25 +66,38 @@ exports.applyLeave = async (companyId, user, payload) => {
     status: "PENDING",
     approvedBy: null
   });
-  await cacheHelper.invalidateNamespace(CACHE_NAMESPACES.LEAVE_REQUESTS, companyId);
-  await cacheHelper.invalidateNamespace(CACHE_NAMESPACES.DASHBOARD_SUMMARY, companyId);
+  await Promise.all([
+    cacheHelper.invalidateNamespace(CACHE_NAMESPACES.LEAVE_REQUESTS, companyId),
+    cacheHelper.invalidateNamespace(CACHE_NAMESPACES.LEAVE_PERSONAL, companyId),
+    cacheHelper.invalidateNamespace(CACHE_NAMESPACES.DASHBOARD_SUMMARY, companyId)
+  ]);
   return leave;
 };
 
 exports.getMyLeaves = async (companyId, user, query) => {
   const employee = await getCurrentEmployee(companyId, user.id);
-  return leaveRepository.listByEmployee(companyId, employee.id, query);
+  // Cache personal leave records per employee + query filters
+  const cacheKey = cacheHelper.buildCacheKey(
+    CACHE_NAMESPACES.LEAVE_PERSONAL,
+    companyId,
+    { empId: employee.id, ...query }
+  );
+  return cacheHelper.getOrSetJson(
+    cacheKey,
+    () => leaveRepository.listByEmployee(companyId, employee.id, query),
+    TTL.LEAVE
+  );
 };
 
 exports.getTeamLeaves = async (companyId, user, query) => {
   if (user.role === "OWNER" || user.role === "SUPER_ADMIN") {
     const cacheKey = cacheHelper.buildCacheKey(CACHE_NAMESPACES.LEAVE_REQUESTS, companyId, { ...query, team: "all" });
-    return cacheHelper.getOrSetJson(cacheKey, () => leaveRepository.listByCompany(companyId, query));
+    return cacheHelper.getOrSetJson(cacheKey, () => leaveRepository.listByCompany(companyId, query), TTL.LEAVE);
   }
   const employee = await getCurrentEmployee(companyId, user.id);
   const teamQuery = { ...query, managerId: employee.id };
   const cacheKey = cacheHelper.buildCacheKey(CACHE_NAMESPACES.LEAVE_REQUESTS, companyId, teamQuery);
-  return cacheHelper.getOrSetJson(cacheKey, () => leaveRepository.listByCompany(companyId, teamQuery));
+  return cacheHelper.getOrSetJson(cacheKey, () => leaveRepository.listByCompany(companyId, teamQuery), TTL.LEAVE);
 };
 
 exports.approveLeave = async (companyId, user, leaveRequestId) => {
@@ -110,8 +129,11 @@ exports.approveLeave = async (companyId, user, leaveRequestId) => {
       approvedBy: user.id,
       deductDays: requestedDays
     });
-    await cacheHelper.invalidateNamespace(CACHE_NAMESPACES.LEAVE_REQUESTS, companyId);
-    await cacheHelper.invalidateNamespace(CACHE_NAMESPACES.DASHBOARD_SUMMARY, companyId);
+    await Promise.all([
+      cacheHelper.invalidateNamespace(CACHE_NAMESPACES.LEAVE_REQUESTS, companyId),
+      cacheHelper.invalidateNamespace(CACHE_NAMESPACES.LEAVE_PERSONAL, companyId),
+      cacheHelper.invalidateNamespace(CACHE_NAMESPACES.DASHBOARD_SUMMARY, companyId)
+    ]);
     return leave;
   } catch (error) {
     if (error?.message === "INSUFFICIENT_BALANCE") {
@@ -144,8 +166,11 @@ exports.rejectLeave = async (companyId, user, leaveRequestId) => {
       approvedBy: user.id,
       deductDays: 0
     });
-    await cacheHelper.invalidateNamespace(CACHE_NAMESPACES.LEAVE_REQUESTS, companyId);
-    await cacheHelper.invalidateNamespace(CACHE_NAMESPACES.DASHBOARD_SUMMARY, companyId);
+    await Promise.all([
+      cacheHelper.invalidateNamespace(CACHE_NAMESPACES.LEAVE_REQUESTS, companyId),
+      cacheHelper.invalidateNamespace(CACHE_NAMESPACES.LEAVE_PERSONAL, companyId),
+      cacheHelper.invalidateNamespace(CACHE_NAMESPACES.DASHBOARD_SUMMARY, companyId)
+    ]);
     return leave;
   } catch (error) {
     if (error?.message === "INSUFFICIENT_BALANCE") {
