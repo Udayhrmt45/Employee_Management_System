@@ -2,7 +2,7 @@ const attendanceRepository = require("../repositories/attendanceRepository");
 const env = require("../config/env");
 const ApiError = require("../utils/ApiError");
 const cacheHelper = require("../utils/cacheHelper");
-const { CACHE_NAMESPACES } = cacheHelper;
+const { CACHE_NAMESPACES, TTL } = cacheHelper;
 
 const ATTENDANCE_TIMEZONE = env.attendance.timezone;
 
@@ -84,8 +84,12 @@ exports.checkIn = async (companyId, userId, payload) => {
       checkIn: payload.checkIn || getCurrentUtcTimestamp(),
       status: payload.status || "PRESENT"
     });
-    await cacheHelper.invalidateNamespace(CACHE_NAMESPACES.ATTENDANCE_DASHBOARD, companyId);
-    await cacheHelper.invalidateNamespace(CACHE_NAMESPACES.DASHBOARD_SUMMARY, companyId);
+    // Invalidate company-wide + personal attendance cache
+    await Promise.all([
+      cacheHelper.invalidateNamespace(CACHE_NAMESPACES.ATTENDANCE_DASHBOARD, companyId),
+      cacheHelper.invalidateNamespace(CACHE_NAMESPACES.ATTENDANCE_PERSONAL, companyId),
+      cacheHelper.invalidateNamespace(CACHE_NAMESPACES.DASHBOARD_SUMMARY, companyId)
+    ]);
     return attendance;
   } catch (error) {
     if (error?.code === "23505") {
@@ -126,25 +130,39 @@ exports.checkOut = async (companyId, userId, payload) => {
     checkOut: checkOutAt,
     totalHours
   });
-  await cacheHelper.invalidateNamespace(CACHE_NAMESPACES.ATTENDANCE_DASHBOARD, companyId);
-  await cacheHelper.invalidateNamespace(CACHE_NAMESPACES.DASHBOARD_SUMMARY, companyId);
+  // Invalidate company-wide + personal attendance cache
+  await Promise.all([
+    cacheHelper.invalidateNamespace(CACHE_NAMESPACES.ATTENDANCE_DASHBOARD, companyId),
+    cacheHelper.invalidateNamespace(CACHE_NAMESPACES.ATTENDANCE_PERSONAL, companyId),
+    cacheHelper.invalidateNamespace(CACHE_NAMESPACES.DASHBOARD_SUMMARY, companyId)
+  ]);
   return updatedAttendance;
 };
 
 exports.getMyAttendance = async (companyId, userId, query) => {
   const employee = await getCurrentEmployee(companyId, userId);
-  return attendanceRepository.listEmployeeAttendance(companyId, employee.id, query);
+  // Cache personal attendance per employee + query filters
+  const cacheKey = cacheHelper.buildCacheKey(
+    CACHE_NAMESPACES.ATTENDANCE_PERSONAL,
+    companyId,
+    { empId: employee.id, ...query }
+  );
+  return cacheHelper.getOrSetJson(
+    cacheKey,
+    () => attendanceRepository.listEmployeeAttendance(companyId, employee.id, query),
+    TTL.ATTENDANCE
+  );
 };
 
 exports.getTeamAttendance = async (companyId, user, query) => {
   if (user.role === "OWNER" || user.role === "SUPER_ADMIN") {
     const cacheKey = cacheHelper.buildCacheKey(CACHE_NAMESPACES.ATTENDANCE_DASHBOARD, companyId, { ...query, team: "all" });
-    return cacheHelper.getOrSetJson(cacheKey, () => attendanceRepository.listCompanyAttendance(companyId, query));
+    return cacheHelper.getOrSetJson(cacheKey, () => attendanceRepository.listCompanyAttendance(companyId, query), TTL.ATTENDANCE);
   }
   const employee = await getCurrentEmployee(companyId, user.id);
   const teamQuery = { ...query, managerId: employee.id };
   const cacheKey = cacheHelper.buildCacheKey(CACHE_NAMESPACES.ATTENDANCE_DASHBOARD, companyId, teamQuery);
-  return cacheHelper.getOrSetJson(cacheKey, () => attendanceRepository.listCompanyAttendance(companyId, teamQuery));
+  return cacheHelper.getOrSetJson(cacheKey, () => attendanceRepository.listCompanyAttendance(companyId, teamQuery), TTL.ATTENDANCE);
 };
 
 exports.exportTeamAttendance = async (companyId, user, query) => {

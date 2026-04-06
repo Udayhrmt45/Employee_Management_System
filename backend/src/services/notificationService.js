@@ -2,6 +2,8 @@ const notificationRepository = require("../repositories/notificationRepository")
 const ApiError = require("../utils/ApiError");
 const { getDatabase } = require("../config/database");
 const { ROLES } = require("../utils/roleHierarchy");
+const cacheHelper = require("../utils/cacheHelper");
+const { CACHE_NAMESPACES, TTL } = cacheHelper;
 
 const TARGET_TYPES = {
   ALL_USERS: "ALL_USERS",
@@ -155,6 +157,13 @@ exports.sendNotification = async (actor, payload) => {
     await notificationRepository.insertRecipients(notification.id, recipientUserIds, client);
     await client.query("COMMIT");
 
+    // Invalidate notification cache for all recipients
+    await Promise.all(
+      recipientUserIds.map((userId) =>
+        cacheHelper.invalidateUserNamespace(CACHE_NAMESPACES.NOTIFICATIONS, userId)
+      )
+    );
+
     const hydrated = await notificationRepository.findById(notification.id);
     return mapNotificationWithPermissions(hydrated, actor);
   } catch (error) {
@@ -166,20 +175,29 @@ exports.sendNotification = async (actor, payload) => {
 };
 
 exports.listNotifications = async (actor, query = {}) => {
-  const [notifications, unreadCount, ownerTargets] = await Promise.all([
-    notificationRepository.listForUser(actor.id, query),
-    notificationRepository.countUnreadForUser(actor.id),
-    actor.role === ROLES.SUPER_ADMIN ? notificationRepository.listOwnerTargets() : Promise.resolve([])
-  ]);
+  // Cache per user — include query params in key for pagination/filter support
+  const cacheKey = cacheHelper.buildUserCacheKey(CACHE_NAMESPACES.NOTIFICATIONS, actor.id, query);
 
-  const permissions = getSendPermissions(actor.role);
+  return cacheHelper.getOrSetJson(
+    cacheKey,
+    async () => {
+      const [notifications, unreadCount, ownerTargets] = await Promise.all([
+        notificationRepository.listForUser(actor.id, query),
+        notificationRepository.countUnreadForUser(actor.id),
+        actor.role === ROLES.SUPER_ADMIN ? notificationRepository.listOwnerTargets() : Promise.resolve([])
+      ]);
 
-  return {
-    notifications: notifications.map((notification) => mapNotificationWithPermissions(notification, actor)),
-    unreadCount,
-    permissions,
-    availableOwners: ownerTargets
-  };
+      const permissions = getSendPermissions(actor.role);
+
+      return {
+        notifications: notifications.map((notification) => mapNotificationWithPermissions(notification, actor)),
+        unreadCount,
+        permissions,
+        availableOwners: ownerTargets
+      };
+    },
+    TTL.NOTIFICATIONS
+  );
 };
 
 exports.markAsRead = async (actor, notificationId) => {
@@ -190,6 +208,8 @@ exports.markAsRead = async (actor, notificationId) => {
   }
 
   const recipient = await notificationRepository.markAsRead(notificationId, actor.id);
+  // Invalidate the reader's notification cache (unreadCount changed)
+  await cacheHelper.invalidateUserNamespace(CACHE_NAMESPACES.NOTIFICATIONS, actor.id);
   return recipient;
 };
 
@@ -249,6 +269,9 @@ exports.updateNotification = async (actor, notificationId, payload) => {
 
     await client.query("COMMIT");
 
+    // Invalidate the sender's notification cache (notification content changed)
+    await cacheHelper.invalidateUserNamespace(CACHE_NAMESPACES.NOTIFICATIONS, actor.id);
+
     const hydrated = await notificationRepository.findById(updatedNotification.id);
     return mapNotificationWithPermissions(hydrated, actor);
   } catch (error) {
@@ -266,6 +289,9 @@ exports.deleteNotification = async (actor, notificationId) => {
   if (!deleted) {
     throw new ApiError(404, "Notification not found");
   }
+
+  // Invalidate the sender's notification cache
+  await cacheHelper.invalidateUserNamespace(CACHE_NAMESPACES.NOTIFICATIONS, actor.id);
 
   return { id: Number(notificationId) };
 };

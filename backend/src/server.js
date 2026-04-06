@@ -1,7 +1,7 @@
 const app = require("./app");
 const env = require("./config/env");
 const { connectDatabase } = require("./config/database");
-const { connectRedis } = require("./config/redis");
+const { connectRedis, disconnectRedis } = require("./config/redis");
 const { ensureSuperAdmin } = require("./services/superAdminService");
 const logger = require("./utils/logger");
 
@@ -9,11 +9,36 @@ async function bootstrap() {
   try {
     await connectDatabase();
     await ensureSuperAdmin();
-    // await connectRedis(); // Disabled for local dev without redis container
 
-    app.listen(env.port, () => {
+    // Connect Redis — if Redis is unavailable the app still starts,
+    // caching will be silently bypassed (getRedis() returns null).
+    try {
+      await connectRedis();
+    } catch (redisError) {
+      logger.warn("Redis connection failed — caching will be disabled", {
+        message: redisError.message
+      });
+    }
+
+    const server = app.listen(env.port, () => {
       logger.info(`Server listening on port ${env.port}`);
     });
+
+    // Graceful shutdown
+    async function gracefulShutdown(signal) {
+      logger.info(`Received ${signal} — shutting down gracefully`);
+      server.close(async () => {
+        try {
+          await disconnectRedis();
+        } catch (error) {
+          logger.error("Error during Redis disconnect", { message: error.message });
+        }
+        process.exit(0);
+      });
+    }
+
+    process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+    process.on("SIGINT", () => gracefulShutdown("SIGINT"));
   } catch (error) {
     logger.error("Failed to bootstrap application", error);
     process.exit(1);
