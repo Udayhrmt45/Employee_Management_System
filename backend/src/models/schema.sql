@@ -58,6 +58,7 @@ CREATE TABLE employees (
   department_id BIGINT,
   designation VARCHAR(100),
   joining_date DATE,
+  paid_leave_balance INT DEFAULT 0,
   employment_type employment_type_enum DEFAULT 'FULL_TIME',
   status employee_status_enum DEFAULT 'ACTIVE',
   manager_id BIGINT NULL,
@@ -96,6 +97,7 @@ CREATE TABLE leave_types (
   company_id BIGINT NOT NULL,
   name VARCHAR(100) NOT NULL,
   max_days INT DEFAULT 0,
+  type VARCHAR(50) DEFAULT 'PAID',
   created_at TIMESTAMP DEFAULT NOW(),
   CONSTRAINT fk_leave_types_company FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE
 );
@@ -124,6 +126,9 @@ CREATE TABLE leave_requests (
   end_date DATE NOT NULL,
   reason TEXT,
   status leave_status_enum DEFAULT 'PENDING',
+  effective_days INT DEFAULT 0,
+  paid_days INT DEFAULT 0,
+  unpaid_days INT DEFAULT 0,
   approved_by BIGINT,
   created_at TIMESTAMP DEFAULT NOW(),
   CONSTRAINT fk_leave_requests_employee FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
@@ -135,6 +140,18 @@ CREATE TABLE leave_requests (
 CREATE INDEX idx_leave_requests_employee ON leave_requests(employee_id);
 CREATE INDEX idx_leave_requests_company ON leave_requests(company_id);
 CREATE INDEX idx_leave_requests_status ON leave_requests(status);
+
+CREATE TABLE holidays (
+  id BIGSERIAL PRIMARY KEY,
+  company_id BIGINT NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  date DATE NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  CONSTRAINT fk_holidays_company FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE,
+  UNIQUE (company_id, date)
+);
+
+CREATE INDEX idx_holidays_company_date ON holidays(company_id, date);
 
 CREATE TABLE payments (
   id BIGSERIAL PRIMARY KEY,

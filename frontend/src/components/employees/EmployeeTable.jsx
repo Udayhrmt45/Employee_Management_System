@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
 import ConfirmationDialog from '@/components/shared/ConfirmationDialog';
 import EmptyState from '@/components/shared/EmptyState';
@@ -90,7 +89,8 @@ export default function EmployeeTable({ employees, onViewEmployee, onEditEmploye
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05, type: "spring", stiffness: 400, damping: 30, mass: 0.8 }}
               whileHover={{ scale: 1.005, backgroundColor: "oklch(var(--muted) / 0.5)" }}
-              className="border-b transition-colors group cursor-default"
+              className="border-b transition-colors group cursor-pointer"
+              onClick={() => onViewEmployee?.(employee.id)}
             >
               <TableCell className="font-medium text-foreground">
                 <div className="flex items-center gap-3">
@@ -114,38 +114,21 @@ export default function EmployeeTable({ employees, onViewEmployee, onEditEmploye
                 </Badge>
               </TableCell>
               <TableCell className="text-right">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity">
-                      <span className="sr-only">Open menu</span>
-                      <MoreHorizontal className="h-4 w-4" />
+                <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                  {canEditEmployee(employee) && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-50" onClick={() => onEditEmployee?.(employee.id)} title="Edit Employee">
+                      <Edit className="h-4 w-4" />
+                      <span className="sr-only">Edit Employee</span>
                     </Button>
-                  </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem className="cursor-pointer" onClick={() => onViewEmployee?.(employee.id)}>
-                      <Eye className="mr-2 h-4 w-4" /> View Details
-                    </DropdownMenuItem>
+                  )}
 
-                    {canEditEmployee(employee) && (
-                      <DropdownMenuItem className="cursor-pointer" onClick={() => onEditEmployee?.(employee.id)}>
-                        <Edit className="mr-2 h-4 w-4" /> Edit Employee
-                      </DropdownMenuItem>
-                    )}
-
-                    {canDeleteEmployee(employee) && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          className="cursor-pointer text-destructive focus:text-destructive"
-                          onClick={() => setEmployeeToDelete(employee.id)}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" /> Delete
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  {canDeleteEmployee(employee) && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => setEmployeeToDelete(employee.id)} title="Delete">
+                      <Trash2 className="h-4 w-4" />
+                      <span className="sr-only">Delete</span>
+                    </Button>
+                  )}
+                </div>
               </TableCell>
             </motion.tr>
           ))}

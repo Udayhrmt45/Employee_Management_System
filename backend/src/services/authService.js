@@ -5,10 +5,10 @@ const userRepository = require("../repositories/userRepository");
 const leaveRepository = require("../repositories/leaveRepository");
 
 const DEFAULT_LEAVE_TYPES = [
-  { name: "Paid Leave", maxDays: 18 },
-  { name: "Sick Leave", maxDays: 12 },
-  { name: "Casual Leave", maxDays: 6 },
-  { name: "Unpaid Leave", maxDays: 0 },
+  { name: "Paid Leave", maxDays: 18, type: "PAID" },
+  { name: "Sick Leave", maxDays: 12, type: "PAID" },
+  { name: "Casual Leave", maxDays: 6, type: "PAID" },
+  { name: "Unpaid Leave", maxDays: 0, type: "UNPAID" },
 ];
 
 function getPrimaryEmail(clerkUser) {
