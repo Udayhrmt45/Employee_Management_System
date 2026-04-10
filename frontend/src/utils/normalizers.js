@@ -104,6 +104,7 @@ export function getErrorMessage(error, fallbackMessage) {
 export function normalizeEmployee(employee) {
   return {
     ...employee,
+    paidLeaveBalance: Number(employee.paidLeaveBalance || 0),
     position: employee.designation || "Not assigned",
     department: employee.departmentName || "Unassigned",
     rawStatus: employee.status,
@@ -130,6 +131,9 @@ export function normalizeLeaveRecord(record) {
     ...record,
     employee: record.employeeName || "Unknown employee",
     type: record.leaveTypeName || `Leave #${record.leaveTypeId}`,
+    paidDays: Number(record.paidDays || 0),
+    unpaidDays: Number(record.unpaidDays || 0),
+    effectiveDays: Number(record.effectiveDays || 0),
     rawStatus: record.status,
     status: titleCase(record.status) || "Unknown",
   };

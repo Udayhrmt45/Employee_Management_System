@@ -10,7 +10,7 @@ const {
 
 exports.createEmployee = async (req, res) => {
   const body = validateRequest(createEmployeeSchema, req.body);
-  const employee = await employeeService.createEmployee(req.companyId, body);
+  const employee = await employeeService.createEmployee(req.companyId, body, req.user);
   res.status(201).json(ApiResponse.success(employee, "Employee created successfully"));
 };
 

@@ -25,13 +25,7 @@ export default function ConfirmationDialog({
 }) {
   return (
     <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <AlertDialogContent asChild>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.2 }}
-        >
+      <AlertDialogContent className={isDanger ? 'border-destructive/20' : ''}>
           <AlertDialogHeader>
             <AlertDialogTitle>{title}</AlertDialogTitle>
             <AlertDialogDescription>{description}</AlertDialogDescription>
@@ -50,7 +44,6 @@ export default function ConfirmationDialog({
               {confirmText}
             </AlertDialogAction>
           </AlertDialogFooter>
-        </motion.div>
       </AlertDialogContent>
     </AlertDialog>
   );

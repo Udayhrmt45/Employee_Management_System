@@ -25,6 +25,10 @@ const INITIAL_FORM_STATE = {
   joiningDate: '',
   employmentType: 'FULL_TIME',
   managerId: 'none',
+  basicSalary: '',
+  hra: '',
+  allowances: '',
+  deductions: '',
 };
 
 export default function AddEmployeeModal() {
@@ -56,6 +60,13 @@ export default function AddEmployeeModal() {
       phone: formData.phone.trim() || undefined,
       employmentType: formData.employmentType || 'FULL_TIME',
       managerId: formData.managerId && formData.managerId !== 'none' ? Number(formData.managerId) : undefined,
+      salary: formData.basicSalary ? {
+        basicSalary: Number(formData.basicSalary),
+        hra: Number(formData.hra || 0),
+        allowances: Number(formData.allowances || 0),
+        deductions: Number(formData.deductions || 0),
+        effectiveFrom: formData.joiningDate ? new Date(formData.joiningDate).toISOString() : new Date().toISOString()
+      } : undefined
     }, {
       onSuccess: () => {
         setOpen(false);
@@ -75,7 +86,7 @@ export default function AddEmployeeModal() {
           <Plus className="mr-2 h-4 w-4" /> Add Employee
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Employee</DialogTitle>
           <DialogDescription>
@@ -193,6 +204,30 @@ export default function AddEmployeeModal() {
                   <Label htmlFor="joiningDate">Joining Date</Label>
                   <Input id="joiningDate" name="joiningDate" type="date" value={formData.joiningDate} onChange={handleChange} />
                 </motion.div>
+              </div>
+
+              <div className="pt-2 border-t mt-4">
+                <h4 className="text-sm font-semibold mb-3">Initial Salary Structure (Optional)</h4>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <motion.div variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 400, damping: 30, mass: 0.8 } } }} className="space-y-2">
+                    <Label htmlFor="basicSalary">Basic Salary</Label>
+                    <Input id="basicSalary" name="basicSalary" type="number" min="0" step="0.01" value={formData.basicSalary} onChange={handleChange} placeholder="0.00" />
+                  </motion.div>
+                  <motion.div variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 400, damping: 30, mass: 0.8 } } }} className="space-y-2">
+                    <Label htmlFor="hra">HRA</Label>
+                    <Input id="hra" name="hra" type="number" min="0" step="0.01" value={formData.hra} onChange={handleChange} placeholder="0.00" />
+                  </motion.div>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2 mt-4">
+                  <motion.div variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 400, damping: 30, mass: 0.8 } } }} className="space-y-2">
+                    <Label htmlFor="allowances">Allowances</Label>
+                    <Input id="allowances" name="allowances" type="number" min="0" step="0.01" value={formData.allowances} onChange={handleChange} placeholder="0.00" />
+                  </motion.div>
+                  <motion.div variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 400, damping: 30, mass: 0.8 } } }} className="space-y-2">
+                    <Label htmlFor="deductions">Deductions</Label>
+                    <Input id="deductions" name="deductions" type="number" min="0" step="0.01" value={formData.deductions} onChange={handleChange} placeholder="0.00" />
+                  </motion.div>
+                </div>
               </div>
             </motion.div>
             

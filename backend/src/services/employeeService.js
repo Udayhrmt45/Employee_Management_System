@@ -1,9 +1,11 @@
 const employeeRepository = require("../repositories/employeeRepository");
 const leaveRepository = require("../repositories/leaveRepository");
+const salaryRepository = require("../repositories/salaryRepository");
 const ApiError = require("../utils/ApiError");
 const cacheHelper = require("../utils/cacheHelper");
 const { CACHE_NAMESPACES, TTL } = cacheHelper;
 const { hasPermission, ROLES } = require("../utils/roleHierarchy");
+const { clerkClient } = require("../config/clerk");
 
 function normalizeEmployeeWriteError(error) {
   if (error?.code === "23505") {
@@ -35,7 +37,7 @@ async function assertRelatedEntities(companyId, payload) {
   }
 }
 
-exports.createEmployee = async (companyId, payload) => {
+exports.createEmployee = async (companyId, payload, user = null) => {
   const existingEmployee = payload.email
     ? await employeeRepository.findByEmail(companyId, payload.email)
     : null;
@@ -53,10 +55,44 @@ exports.createEmployee = async (companyId, payload) => {
       status: payload.status || "ACTIVE"
     });
     await leaveRepository.initializeLeaveBalancesForEmployee(companyId, employee.id);
+
+    if (payload.salary) {
+      await salaryRepository.upsertStructure(companyId, {
+        employeeId: employee.id,
+        basicSalary: payload.salary.basicSalary,
+        hra: payload.salary.hra,
+        allowances: payload.salary.allowances,
+        deductions: payload.salary.deductions,
+        effectiveFrom: payload.salary.effectiveFrom || null
+      });
+      await cacheHelper.invalidateNamespace(CACHE_NAMESPACES.SALARY_STRUCTURES, companyId);
+    }
+
     await Promise.all([
       cacheHelper.invalidateNamespace(CACHE_NAMESPACES.EMPLOYEE_LIST, companyId),
       cacheHelper.invalidateNamespace(CACHE_NAMESPACES.DASHBOARD_SUMMARY, companyId)
     ]);
+
+    // Send Clerk invite for them to claim this employee profile (shows in Team Management)
+    if (payload.email) {
+      try {
+        await clerkClient.invitations.createInvitation({
+          emailAddress: payload.email,
+          ignoreExisting: true,
+          publicMetadata: {
+            invitedCompanyId: companyId,
+            invitedEmployeeName: payload.name || payload.email,
+            invitedDesignation: payload.designation || "Employee",
+            invitedAppRole: "EMPLOYEE",
+            invitedByUserId: user ? user.id : null,
+            invitationSource: "employees"
+          }
+        });
+      } catch (err) {
+        console.error("Clerk invitation failed during employee creation", err.errors || err);
+      }
+    }
+
     return employee;
   } catch (error) {
     normalizeEmployeeWriteError(error);

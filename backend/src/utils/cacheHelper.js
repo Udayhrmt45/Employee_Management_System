@@ -10,6 +10,7 @@ const TTL = {
   DASHBOARD: 120,      // 2 min   — dashboard summary (high churn)
   DEPARTMENT: 600,     // 10 min  — department list (near-static)
   NOTIFICATIONS: 60,   // 1 min   — per-user notifications (real-time feel)
+  SALARY: 300,         // 5 min   — salary structures & slips
   DEFAULT: 300         // 5 min   — fallback
 };
 
@@ -22,9 +23,12 @@ const CACHE_NAMESPACES = {
   LEAVE_REQUESTS:       "leaves:requests",
   LEAVE_PERSONAL:       "leaves:personal",
   LEAVE_TYPES:          "leaves:types",
+  HOLIDAYS:             "holidays:list",
   COMPANY_SUBSCRIPTION: "company:subscription",
   DEPARTMENT_LIST:      "departments:list",
-  NOTIFICATIONS:        "notifications:user"
+  NOTIFICATIONS:        "notifications:user",
+  SALARY_STRUCTURES:    "salary:structures",
+  SALARY_SLIPS:         "salary:slips"
 };
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────

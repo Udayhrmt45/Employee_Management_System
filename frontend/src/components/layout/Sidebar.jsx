@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Calendar, Clock, Settings, Bell } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, Clock, Settings, Bell, Banknote, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,8 @@ const NAVIGATION_ITEMS = [
   { name: 'Employees', href: '/employees', icon: Users },
   { name: 'Attendance', href: '/attendance', icon: Clock },
   { name: 'Leave', href: '/leave', icon: Calendar },
+  { name: 'Holidays', href: '/holidays', icon: CalendarDays },
+  { name: 'Salary', href: '/salary', icon: Banknote },
   { name: 'Notifications', href: '/notifications', icon: Bell },
 ];
 

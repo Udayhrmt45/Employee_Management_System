@@ -1,4 +1,4 @@
-const leaveService = require("../services/leaveService");
+const leaveService = require("../services/leaveWorkflowService");
 const ApiResponse = require("../utils/apiResponse");
 const validateRequest = require("../utils/requestValidator");
 const {

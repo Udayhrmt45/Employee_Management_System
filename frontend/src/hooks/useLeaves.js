@@ -119,6 +119,7 @@ export function useSubmitLeave() {
     mutationFn: applyLeave,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leaves'] });
+      queryClient.invalidateQueries({ queryKey: ['employee'] });
       toast.success('Leave request submitted', {
         description: 'Your leave application has been forwarded for approval.'
       });
@@ -139,6 +140,8 @@ function useLeaveDecision(mutationFn, successTitle, successDescription, errorTit
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['team-leaves'] });
       queryClient.invalidateQueries({ queryKey: ['leaves'] });
+      queryClient.invalidateQueries({ queryKey: ['employee'] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
       toast.success(successTitle, { description: successDescription });
     },
     onError: (error) => {

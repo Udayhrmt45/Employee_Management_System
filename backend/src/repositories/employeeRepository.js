@@ -22,6 +22,7 @@ function mapEmployee(row) {
     departmentName: row.department_name,
     designation: row.designation,
     joiningDate: row.joining_date,
+    paidLeaveBalance: Number(row.paid_leave_balance || 0),
     employmentType: row.employment_type,
     status: row.status,
     managerId: row.manager_id,
@@ -50,6 +51,7 @@ async function findDetailedById(companyId, employeeId) {
        d.name AS department_name,
        e.designation,
        e.joining_date,
+       e.paid_leave_balance,
        e.employment_type,
        e.status,
        e.created_at,
@@ -71,8 +73,8 @@ exports.create = async (companyId, payload) => {
   const db = getDatabase();
   const { rows } = await db.query(
     `INSERT INTO employees
-      (company_id, user_id, employee_code, name, email, phone, department_id, designation, joining_date, employment_type, status, manager_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      (company_id, user_id, employee_code, name, email, phone, department_id, designation, joining_date, paid_leave_balance, employment_type, status, manager_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
      RETURNING id`,
     [
       companyId,
@@ -84,6 +86,7 @@ exports.create = async (companyId, payload) => {
       payload.departmentId || null,
       payload.designation || null,
       payload.joiningDate || null,
+      payload.paidLeaveBalance ?? 0,
       payload.employmentType,
       payload.status,
       payload.managerId || null
@@ -174,6 +177,7 @@ exports.list = async (companyId, query) => {
        d.name AS department_name,
        e.designation,
        e.joining_date,
+       e.paid_leave_balance,
        e.employment_type,
        e.status,
        e.created_at,
@@ -213,6 +217,7 @@ exports.update = async (companyId, employeeId, payload) => {
     departmentId: "department_id",
     designation: "designation",
     joiningDate: "joining_date",
+    paidLeaveBalance: "paid_leave_balance",
     employmentType: "employment_type",
     status: "status",
     managerId: "manager_id"

@@ -274,7 +274,7 @@ export default function EmployeeProfileModal({ employeeId, mode = 'view', open, 
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
               <h4 className="text-sm font-semibold text-foreground">Leave Summary</h4>
-              <p className="text-xs text-muted-foreground">Remaining leave balances for this employee.</p>
+              <p className="text-xs text-muted-foreground">Paid leave balance and remaining leave balances for this employee.</p>
             </div>
           </div>
 
@@ -282,10 +282,17 @@ export default function EmployeeProfileModal({ employeeId, mode = 'view', open, 
             <LoadingSkeleton type="list" rows={3} />
           ) : isLeaveBalancesError ? (
             <ErrorState title="Leave balances unavailable" message={leaveBalancesErrorMessage} onRetry={refetchLeaveBalances} />
-          ) : leaveBalances.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No leave balances found for this employee.</p>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+                <div className="text-sm font-medium text-emerald-800">Paid Leave Balance</div>
+                <div className="mt-2 flex items-center justify-between">
+                  <span className="text-xs text-emerald-700">Remaining</span>
+                  <Badge variant="outline" className="border-emerald-200 bg-white text-emerald-800">
+                    {employee.paidLeaveBalance ?? 0} days
+                  </Badge>
+                </div>
+              </div>
               {leaveBalances.map((balance) => (
                 <div key={balance.leaveTypeId} className="rounded-lg border bg-muted/20 p-4">
                   <div className="text-sm font-medium text-foreground">{balance.leaveTypeName}</div>

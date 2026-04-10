@@ -9,6 +9,7 @@ import { Toaster } from 'sonner';
 // Lazy load page components for better performance (React Best Practice)
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Employees = lazy(() => import('./pages/Employees'));
+const EmployeeDetails = lazy(() => import('./pages/EmployeeDetails'));
 const Attendance = lazy(() => import('./pages/Attendance'));
 const Leaves = lazy(() => import('./pages/Leaves'));
 const SignInPage = lazy(() => import('./components/auth/SignInPage'));
@@ -18,9 +19,12 @@ const Onboarding = lazy(() => import('./pages/Onboarding'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Notifications = lazy(() => import('./pages/Notifications'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const Salary = lazy(() => import('./pages/Salary'));
+const Holidays = lazy(() => import('./pages/Holidays'));
 const TermsAndConditions = lazy(() => import('./pages/legal/TermsAndConditions'));
 const RefundPolicy = lazy(() => import('./pages/legal/RefundPolicy'));
 const ProductDetails = lazy(() => import('./pages/ProductDetails'));
+const EmployeePayslips = lazy(() => import('./pages/EmployeePayslips'));
 
 // Admin pages
 const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));
@@ -175,9 +179,21 @@ function App() {
                 <Employees />
               </RoleProtectedRoute>
             } />
+            <Route path="/employees/:id" element={
+              <RoleProtectedRoute requiredRole={ROLES.EMPLOYEE}>
+                <EmployeeDetails />
+              </RoleProtectedRoute>
+            } />
             <Route path="/attendance" element={<Attendance />} />
             <Route path="/leaves" element={<Leaves />} />
             <Route path="/leave" element={<Navigate to="/leaves" replace />} />
+            <Route path="/salary" element={<Salary />} />
+            <Route path="/holidays" element={<Holidays />} />
+            <Route path="/salary/payslips/:id" element={
+              <RoleProtectedRoute requiredRole={ROLES.ADMIN}>
+                <EmployeePayslips />
+              </RoleProtectedRoute>
+            } />
             <Route path="/settings" element={
               <RoleProtectedRoute requiredRole={ROLES.EMPLOYEE}>
                 <Settings />

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Search, LayoutGrid, List } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import EmployeeTable from '@/components/employees/EmployeeTable';
 import EmployeeCard from '@/components/employees/EmployeeCard';
 import AddEmployeeModal from '@/components/employees/AddEmployeeModal';
-import EmployeeProfileModal from '@/components/employees/EmployeeProfileModal';
 import { useEmployees } from '@/hooks/useEmployees';
 import PageHeader from '@/components/shared/PageHeader';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
@@ -26,8 +26,7 @@ const containerVariants = {
 };
 
 export default function Employees() {
-  const [selectedEmployeeId, setSelectedEmployeeId] = React.useState(null);
-  const [modalMode, setModalMode] = React.useState('view');
+  const navigate = useNavigate();
   const { 
     view, 
     setView, 
@@ -47,13 +46,12 @@ export default function Employees() {
   const { userRole } = useAuthUser();
 
   const openViewModal = (employeeId) => {
-    setSelectedEmployeeId(employeeId);
-    setModalMode('view');
+    navigate(`/employees/${employeeId}`);
   };
 
   const openEditModal = (employeeId) => {
-    setSelectedEmployeeId(employeeId);
-    setModalMode('edit');
+    // Navigating to the same details page, the edit tab functionality can be toggled there or it's accessible inside Details
+    navigate(`/employees/${employeeId}`);
   };
 
   return (
@@ -150,17 +148,6 @@ export default function Employees() {
           )}
         </>
       )}
-
-      <EmployeeProfileModal
-        employeeId={selectedEmployeeId}
-        mode={modalMode}
-        open={Boolean(selectedEmployeeId)}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelectedEmployeeId(null);
-          }
-        }}
-      />
     </motion.div>
   );
 }

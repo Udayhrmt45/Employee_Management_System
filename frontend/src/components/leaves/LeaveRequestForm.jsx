@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { CalendarDays, Send, Loader2 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { useLeaveBalances, useLeaveTypes, useSubmitLeave } from '@/hooks/useLeaves';
+import { useAuthUser } from '@/hooks/useAuthUser';
+import { useEmployeeDetails } from '@/hooks/useEmployees';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ErrorState from '@/components/shared/ErrorState';
 
@@ -22,6 +24,7 @@ const formContainer = {
 };
 
 export default function LeaveRequestForm() {
+  const { employeeId } = useAuthUser();
   const [formData, setFormData] = useState({
     leaveTypeId: '',
     startDate: '',
@@ -44,9 +47,13 @@ export default function LeaveRequestForm() {
     errorMessage: leaveBalancesErrorMessage,
     refetch: refetchLeaveBalances,
   } = useLeaveBalances();
+  const { employee } = useEmployeeDetails(employeeId, Boolean(employeeId));
 
   const selectedLeaveBalance = leaveBalances.find(
     (balance) => String(balance.leaveTypeId) === String(formData.leaveTypeId)
+  );
+  const selectedLeaveType = leaveTypes.find(
+    (leaveType) => String(leaveType.id) === String(formData.leaveTypeId)
   );
 
   const handleSubmit = (e) => {
@@ -119,7 +126,14 @@ export default function LeaveRequestForm() {
                   ))}
                 </SelectContent>
               </Select>
-              {selectedLeaveBalance ? (
+              {selectedLeaveType?.type === 'PAID' ? (
+                <div className="flex items-center justify-between rounded-lg border bg-muted/20 px-3 py-2 text-sm">
+                  <span className="text-muted-foreground">Paid leave balance</span>
+                  <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary">
+                    {employee?.paidLeaveBalance ?? 0} day{Number(employee?.paidLeaveBalance ?? 0) === 1 ? '' : 's'} left
+                  </Badge>
+                </div>
+              ) : selectedLeaveBalance ? (
                 <div className="flex items-center justify-between rounded-lg border bg-muted/20 px-3 py-2 text-sm">
                   <span className="text-muted-foreground">Remaining balance</span>
                   <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary">
@@ -129,6 +143,13 @@ export default function LeaveRequestForm() {
               ) : (
                 <p className="text-xs text-muted-foreground">
                   Select a leave type to view your remaining balance.
+                </p>
+              )}
+              {selectedLeaveType && (
+                <p className="text-xs text-muted-foreground">
+                  {selectedLeaveType.type === 'PAID'
+                    ? 'Paid leave uses your employee-wide paid leave balance. If the balance is short, the remaining days will be treated as LOP after approval.'
+                    : 'Unpaid leave will be treated as LOP in payroll.'}
                 </p>
               )}
             </motion.div>

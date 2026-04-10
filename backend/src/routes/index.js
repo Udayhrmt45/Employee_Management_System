@@ -6,11 +6,13 @@ const healthRoutes = require("./healthRoutes");
 const employeeRoutes = require("./employeeRoutes");
 const attendanceRoutes = require("./attendanceRoutes");
 const leaveRoutes = require("./leaveRoutes");
+const holidayRoutes = require("./holidayRoutes");
 const paymentRoutes = require("./paymentRoutes");
 const settingsRoutes = require("./settingsRoutes");
 const departmentRoutes = require("./departmentRoutes");
 const notificationRoutes = require("./notificationRoutes");
 const demoRoutes = require("./demoRoutes");
+const salaryRoutes = require("./salaryRoutes");
 
 const authMiddleware = require("../middleware/authMiddleware");
 const { requireSuperAdmin } = require("../middleware/roleMiddleware");
@@ -29,11 +31,13 @@ router.use("/health", healthRoutes);
 router.use("/employees", employeeRoutes);
 router.use("/attendance", attendanceRoutes);
 router.use("/leaves", leaveRoutes);
+router.use("/holidays", holidayRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/settings", settingsRoutes);
 router.use("/departments", departmentRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/demo-requests", demoRoutes);
+router.use("/salary", salaryRoutes);
 
 // Super Admin Routes
 router.use("/admin/dashboard", authMiddleware, requireSuperAdmin, adminDashboardRoutes);

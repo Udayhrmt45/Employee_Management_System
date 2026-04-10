@@ -13,10 +13,14 @@ function mapLeaveRequest(row) {
     employeeName: row.employee_name,
     leaveTypeId: row.leave_type_id,
     leaveTypeName: row.leave_type_name,
+    leaveTypeCategory: row.leave_type_category,
     startDate: row.start_date,
     endDate: row.end_date,
     reason: row.reason,
     status: row.status,
+    effectiveDays: Number(row.effective_days || 0),
+    paidDays: Number(row.paid_days || 0),
+    unpaidDays: Number(row.unpaid_days || 0),
     approvedBy: row.approved_by,
     approvedByName: row.approved_by_name,
     createdAt: row.created_at
@@ -32,10 +36,14 @@ async function getRequestDetails(companyId, requestId, client = getDatabase()) {
        e.name AS employee_name,
        lr.leave_type_id,
        lt.name AS leave_type_name,
+       lt.type AS leave_type_category,
        lr.start_date,
        lr.end_date,
        lr.reason,
        lr.status,
+       lr.effective_days,
+       lr.paid_days,
+       lr.unpaid_days,
        lr.approved_by,
        approver.name AS approved_by_name,
        lr.created_at
@@ -55,8 +63,8 @@ exports.create = async (companyId, payload) => {
   const db = getDatabase();
   const { rows } = await db.query(
     `INSERT INTO leave_requests
-      (company_id, employee_id, leave_type_id, start_date, end_date, reason, status, approved_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      (company_id, employee_id, leave_type_id, start_date, end_date, reason, status, effective_days, paid_days, unpaid_days, approved_by)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
      RETURNING id`,
     [
       companyId,
@@ -66,6 +74,9 @@ exports.create = async (companyId, payload) => {
       payload.endDate,
       payload.reason,
       payload.status,
+      payload.effectiveDays || 0,
+      payload.paidDays || 0,
+      payload.unpaidDays || 0,
       payload.approvedBy || null
     ]
   );
@@ -76,20 +87,28 @@ exports.create = async (companyId, payload) => {
 exports.findEmployeeByUserId = async (companyId, userId) => {
   const db = getDatabase();
   const { rows } = await db.query(
-    `SELECT id, company_id, user_id, name, status
+    `SELECT id, company_id, user_id, name, status, joining_date, paid_leave_balance
      FROM employees
      WHERE company_id = $1 AND user_id = $2
      LIMIT 1`,
     [companyId, userId]
   );
 
-  return rows[0] || null;
+  if (!rows[0]) {
+    return null;
+  }
+
+  return {
+    ...rows[0],
+    joiningDate: rows[0].joining_date,
+    paidLeaveBalance: Number(rows[0].paid_leave_balance || 0),
+  };
 };
 
 exports.findLeaveTypeById = async (companyId, leaveTypeId) => {
   const db = getDatabase();
   const { rows } = await db.query(
-    `SELECT id, company_id, name, max_days
+    `SELECT id, company_id, name, max_days, type
      FROM leave_types
      WHERE company_id = $1 AND id = $2
      LIMIT 1`,
@@ -102,7 +121,7 @@ exports.findLeaveTypeById = async (companyId, leaveTypeId) => {
 exports.listLeaveTypes = async (companyId) => {
   const db = getDatabase();
   const { rows } = await db.query(
-    `SELECT id, company_id, name, max_days, created_at
+    `SELECT id, company_id, name, max_days, type, created_at
      FROM leave_types
      WHERE company_id = $1
      ORDER BY name ASC`,
@@ -114,6 +133,7 @@ exports.listLeaveTypes = async (companyId) => {
     companyId: row.company_id,
     name: row.name,
     maxDays: row.max_days,
+    type: row.type || "PAID",
     createdAt: row.created_at,
   }));
 };
@@ -123,7 +143,7 @@ exports.seedDefaultLeaveTypes = async (client, companyId, leaveTypes) => {
 
   for (const leaveType of leaveTypes) {
     const existingLeaveType = await client.query(
-      `SELECT id, company_id, name, max_days, created_at
+      `SELECT id, company_id, name, max_days, type, created_at
        FROM leave_types
        WHERE company_id = $1 AND LOWER(name) = LOWER($2)
        LIMIT 1`,
@@ -136,16 +156,17 @@ exports.seedDefaultLeaveTypes = async (client, companyId, leaveTypes) => {
         companyId: existingLeaveType.rows[0].company_id,
         name: existingLeaveType.rows[0].name,
         maxDays: existingLeaveType.rows[0].max_days,
+        type: existingLeaveType.rows[0].type || 'PAID',
         createdAt: existingLeaveType.rows[0].created_at,
       });
       continue;
     }
 
     const { rows } = await client.query(
-      `INSERT INTO leave_types (company_id, name, max_days)
-       VALUES ($1, $2, $3)
-       RETURNING id, company_id, name, max_days, created_at`,
-      [companyId, leaveType.name, leaveType.maxDays]
+      `INSERT INTO leave_types (company_id, name, max_days, type)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, company_id, name, max_days, type, created_at`,
+      [companyId, leaveType.name, leaveType.maxDays, leaveType.type || 'PAID']
     );
 
     seededLeaveTypes.push({
@@ -153,6 +174,7 @@ exports.seedDefaultLeaveTypes = async (client, companyId, leaveTypes) => {
       companyId: rows[0].company_id,
       name: rows[0].name,
       maxDays: rows[0].max_days,
+      type: rows[0].type,
       createdAt: rows[0].created_at,
     });
   }
@@ -171,6 +193,22 @@ exports.findLeaveBalance = async (employeeId, leaveTypeId) => {
   );
 
   return rows[0] || null;
+};
+
+exports.findOverlappingRequests = async (companyId, employeeId, startDate, endDate, statuses = ["PENDING", "APPROVED"]) => {
+  const db = getDatabase();
+  const { rows } = await db.query(
+    `SELECT lr.id
+     FROM leave_requests lr
+     WHERE lr.company_id = $1
+       AND lr.employee_id = $2
+       AND lr.status = ANY($3::leave_status_enum[])
+       AND lr.start_date <= $5
+       AND lr.end_date >= $4`,
+    [companyId, employeeId, statuses, startDate, endDate]
+  );
+
+  return rows;
 };
 
 exports.listLeaveBalances = async (companyId, employeeId) => {
@@ -246,10 +284,14 @@ exports.listByEmployee = async (companyId, employeeId, query) => {
        e.name AS employee_name,
        lr.leave_type_id,
        lt.name AS leave_type_name,
+       lt.type AS leave_type_category,
        lr.start_date,
        lr.end_date,
        lr.reason,
        lr.status,
+       lr.effective_days,
+       lr.paid_days,
+       lr.unpaid_days,
        lr.approved_by,
        approver.name AS approved_by_name,
        lr.created_at
@@ -287,10 +329,14 @@ exports.listByCompany = async (companyId, query) => {
        e.name AS employee_name,
        lr.leave_type_id,
        lt.name AS leave_type_name,
+       lt.type AS leave_type_category,
        lr.start_date,
        lr.end_date,
        lr.reason,
        lr.status,
+       lr.effective_days,
+       lr.paid_days,
+       lr.unpaid_days,
        lr.approved_by,
        approver.name AS approved_by_name,
        lr.created_at
@@ -331,19 +377,29 @@ exports.updateRequestStatus = async (companyId, requestId, payload) => {
       [payload.status, payload.approvedBy, companyId, requestId]
     );
 
-    if (payload.status === "APPROVED" && payload.deductDays > 0) {
-      const updateResult = await client.query(
-        `UPDATE leave_balances
-         SET balance = balance - $1
-         WHERE employee_id = $2
-           AND leave_type_id = $3
-           AND balance >= $1`,
-        [payload.deductDays, leaveRequest.employeeId, leaveRequest.leaveTypeId]
+    if (payload.status === "APPROVED" && payload.paidDays > 0) {
+      const employeeUpdate = await client.query(
+        `UPDATE employees
+         SET paid_leave_balance = paid_leave_balance - $1,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE company_id = $2
+           AND id = $3
+           AND paid_leave_balance >= $1`,
+        [payload.paidDays, companyId, leaveRequest.employeeId]
       );
 
-      if (!updateResult.rowCount) {
+      if (!employeeUpdate.rowCount) {
         throw new Error("INSUFFICIENT_BALANCE");
       }
+
+      await client.query(
+        `UPDATE leave_balances
+         SET balance = GREATEST(balance - $1, 0),
+             updated_at = CURRENT_TIMESTAMP
+         WHERE employee_id = $2
+           AND leave_type_id = $3`,
+        [payload.paidDays, leaveRequest.employeeId, leaveRequest.leaveTypeId]
+      );
     }
 
     await client.query("COMMIT");
